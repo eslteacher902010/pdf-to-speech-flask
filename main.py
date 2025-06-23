@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for, flash
-from PyPDF2 import PdfReader
+import fitz
 import os
 from gtts import gTTS
 from io import BytesIO
@@ -49,15 +49,12 @@ def convert():
     if not os.path.exists(file_path):
         return "File not found."
 
-    reader = PdfReader(file_path)
+    doc = fitz.open(file_path)
     text = ""
-    for page in reader.pages:
-        extracted = page.extract_text()
-        if extracted:
-            text += extracted
+    for page in doc:
+        text += page.get_text()
 
     return redirect(url_for('speechify', text=text))
-
 
 @app.route('/speech', methods=['GET', 'POST'])
 def speechify():
@@ -83,8 +80,8 @@ def speechify():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # default to 5000 locally
-    app.run(debug=False, host='0.0.0.0', port=port)
+    app.run(debug=True)
+
 
 
 
